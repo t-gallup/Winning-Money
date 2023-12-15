@@ -112,7 +112,7 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
         split_hit = 'split'
         double_down_stay = 'double down'
         
-    if player_hand[0] == player_hand[1]:
+    if player_hand[0] == player_hand[1] and len(player_hand) == 2:
         if 'A' in player_hand:
             return 'split'
         if 10 in player_hand:
@@ -274,7 +274,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                     split_hands[hand_count] = [split_hands[hand_count][0]]
                     split_hands[hand_count].append(deck.pop())
                     split_hands[len(split_hands)-1].append(deck.pop())
-                if strategy == 'surrender':
+                elif strategy == 'surrender':
                     split_hands[hand_count] = [0, 0]
                 elif strategy == 'double down':
                     bet_amount *= 2
@@ -296,8 +296,9 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                         elif strategy == 'stay':
                             break
                         else:
+                            print(299)
                             print(strategy)
-                            print(split_hands)
+                            print(split_hands[hand_count])
                             print(dealer_hand)
                             break
 
@@ -350,6 +351,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
             elif strategy == 'stay':
                 break
             else:
+                print(354)
                 print(strategy)
                 print(player_hand)
                 print(dealer_hand)
