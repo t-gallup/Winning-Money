@@ -113,7 +113,6 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
     print("\nYour cards:", ' '.join(map(str, player_hand)))
     print("Dealer's face up card:", dealer_hand[0])
 
-    # Check for blackjack in the initial hand
     if check_blackjack(player_hand):
         if check_blackjack(dealer_hand):
             print("Player and dealer both have blackjack. It's a tie.")
@@ -121,6 +120,16 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
         else:
             print("Player has blackjack! You win 3:2")
             return int(bet_amount * 1.5)
+
+    # Check for if dealer has blackjack in the initial hand
+    if check_blackjack(dealer_hand):
+        if check_blackjack(player_hand):
+            print("Player and dealer both have blackjack. It's a tie.")
+            return 0
+        else:
+            print("Dealer has Blackjack! You lose!")
+            return -bet_amount
+
 
     # Check for pair to enable splitting
     if player_hand[0] == player_hand[1]:
@@ -197,60 +206,60 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
 
             return total_winnings
 
-        # Player's turn for non-split hand
+    # Player's turn for non-split hand
+    else:
+        double_down = input("Would you like to double down? (yes/no): ").lower()
+        if double_down == 'yes':
+            bet_amount *= 2
+            card = get_card_value(deck.pop())
+            player_hand.append(card)
+            used_cards.append(card)
+            print("Your cards:", ' '.join(map(str, player_hand)))
+            adjust_for_aces(player_hand)
+
+            if get_true_sum(player_hand) > 21:
+                print("You busted")
+                return -bet_amount
         else:
-            double_down = input("Would you like to double down? (yes/no): ").lower()
-            if double_down == 'yes':
-                bet_amount *= 2
-                card = get_card_value(deck.pop())
-                player_hand.append(card)
-                used_cards.append(card)
-                print("Your cards:", ' '.join(map(str, player_hand)))
-                adjust_for_aces(player_hand)
+            while get_true_sum(player_hand) < 21:
+                action = input("Would you like to hit or stay: ").lower()
+                if action == 'hit':
+                    card = get_card_value(deck.pop())
+                    player_hand.append(card)
+                    used_cards.append(card)
+                    print("Your cards:", ' '.join(map(str, player_hand)))
+                    adjust_for_aces(player_hand)
+                    if get_true_sum(player_hand) > 21:
+                        print("You busted")
+                        return -bet_amount
+                elif action == 'stay':
+                    break
 
-                if get_true_sum(player_hand) > 21:
-                    print("You busted")
-                    return -bet_amount
-            else:
-                while get_true_sum(player_hand) <= 21:
-                    action = input("Would you like to hit or stay: ").lower()
-                    if action == 'hit':
-                        card = get_card_value(deck.pop())
-                        player_hand.append(card)
-                        used_cards.append(card)
-                        print("Your cards:", ' '.join(map(str, player_hand)))
-                        adjust_for_aces(player_hand)
-                        if get_true_sum(player_hand) > 21:
-                            print("You busted")
-                            return -bet_amount
-                    elif action == 'stay':
-                        break
+        # Dealer's turn
+        while get_true_sum(dealer_hand) < 18:
+            card = get_card_value(deck.pop())
+            dealer_hand.append(card)
+            used_cards.append(card)
+            adjust_for_aces(dealer_hand)
 
-            # Dealer's turn
-            while get_true_sum(dealer_hand) < 18:
-                card = get_card_value(deck.pop())
-                dealer_hand.append(card)
-                used_cards.append(card)
-                adjust_for_aces(dealer_hand)
+        print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
 
-            print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
+        # Determine the winner for the non-split hand
+        player_value = get_true_sum(player_hand)
+        dealer_value = get_true_sum(dealer_hand)
 
-            # Determine the winner for the non-split hand
-            player_value = get_true_sum(player_hand)
-            dealer_value = get_true_sum(dealer_hand)
-
-            if player_value > 21:
-                print("Player busts. Dealer wins")
-                return -bet_amount
-            elif dealer_value > 21 or player_value > dealer_value:
-                print("Player wins")
-                return bet_amount
-            elif player_value < dealer_value:
-                print("Dealer wins")
-                return -bet_amount
-            else:
-                print("It's a tie")
-                return 0
+        if player_value > 21:
+            print("Player busts. Dealer wins")
+            return -bet_amount
+        elif dealer_value > 21 or player_value > dealer_value:
+            print("Player wins")
+            return bet_amount
+        elif player_value < dealer_value:
+            print("Dealer wins")
+            return -bet_amount
+        else:
+            print("It's a tie")
+            return 0
 
 # Main game loop
 def main():
