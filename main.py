@@ -117,7 +117,8 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
 
             for i in range(2):
                 print(f"\nHand {i + 1}: {' '.join(map(str, split_hands[i]))}")
-                adjust_for_aces(split_hands[i])
+                for j in range(len(split_hands[i])):
+                    split_hands[i][j] = get_card_value(split_hands[i][j])
                 while sum(split_hands[i]) <= 21:
                     action = input("Would you like to hit or stay: ").lower()
                     if action == 'hit':
@@ -133,7 +134,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                         break
 
             # Dealer's turn
-            adjust_for_aces(dealer_hand)
+            dealer_hand = get_card_value(dealer_hand)
             while sum(dealer_hand) < 18:
                 card = get_card_value(deck.pop())
                 dealer_hand.append(card)
@@ -170,30 +171,34 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
             card = get_card_value(deck.pop())
             player_hand.append(card)
             used_cards.append(card)
+            for i in range(len(player_hand)):
+                player_hand[i] = get_card_value(player_hand[i])
             print("Your cards:", ' '.join(map(str, player_hand)))
             adjust_for_aces(player_hand)
-            
+
             if sum(player_hand) > 21:
                 print("You busted")
                 return -bet_amount
-        
-        adjust_for_aces(player_hand)
-        while sum(player_hand) <= 21:
-            action = input("Would you like to hit or stay: ").lower()
-            if action == 'hit':
-                card = get_card_value(deck.pop())
-                player_hand.append(card)
-                used_cards.append(card)
-                print("Your cards:", ' '.join(map(str, player_hand)))
-                adjust_for_aces(player_hand)
-                if sum(player_hand) > 21:
-                    print("You busted")
-                    return -bet_amount
-            elif action == 'stay':
-                break
+        else:
+            for i in range(len(player_hand)):
+                player_hand[i] = get_card_value(player_hand[i])
+            while sum(player_hand) <= 21:
+                action = input("Would you like to hit or stay: ").lower()
+                if action == 'hit':
+                    card = get_card_value(deck.pop())
+                    player_hand.append(card)
+                    used_cards.append(card)
+                    print("Your cards:", ' '.join(map(str, player_hand)))
+                    adjust_for_aces(player_hand)
+                    if sum(player_hand) > 21:
+                        print("You busted")
+                        return -bet_amount
+                elif action == 'stay':
+                    break
 
         # Dealer's turn
-        adjust_for_aces(dealer_hand)
+        for i in range(len(dealer_hand)):
+            dealer_hand[i] = get_card_value(dealer_hand[i])
         while sum(dealer_hand) < 18:
             card = get_card_value(deck.pop())
             dealer_hand.append(card)
