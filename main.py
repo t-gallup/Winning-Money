@@ -50,7 +50,6 @@ Reshuffle
 
 #Dealer hits on Soft 17
 #Reshuffle happens halfway through the deck
-#Cannot Double after a split
 
 import random
 
@@ -259,6 +258,9 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
 
     current_bet = bet_amount
     # Check for pair to enable splitting
+    surrender = input('Would you like to surrender? (yes/no): ')
+    if surrender == 'yes':
+        return -bet_amount//2
     if player_hand[0] == player_hand[1]:
         if current_bet + bet_amount > total_money:
             print("You can't split because you're broke")
