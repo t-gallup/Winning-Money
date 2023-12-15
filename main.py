@@ -110,12 +110,13 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
         double_down_stay = 'double_down'
     
     if player_hand[0] == player_hand[1]:
+        dealer_value = get_card_value(dealer_hand[0])
         if 'A' in player_hand:
             return 'split'
         if 10 in player_hand:
             return 'stay'
         if 9 in player_hand:
-            if dealer_value == 7 or dealer_value == 10 or dealer_value == A:
+            if dealer_value == 7 or dealer_value == 10 or dealer_value == 'A':
                 return 'stay'
             else:
                 return 'split'
@@ -180,7 +181,6 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
 
 
     player_value = get_true_sum(player_hand)
-    dealer_value = get_card_value(dealer_hand[0])
     
 
 
@@ -301,7 +301,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                     split_hands[hand_count].append(card)
                     used_cards.append(card)
                     print("Your cards:", ' '.join(map(str, split_hands[hand_count])))
-                    adjust_for_aces(split_hands[hand_count])
+                    # adjust_for_aces(split_hands[hand_count])
 
                     # if sum(split_hands[i]) > 21:
                     #     print("You busted")
@@ -315,7 +315,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                             split_hands[hand_count].append(card)
                             print(f"Hand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
                             used_cards.append(card)
-                            adjust_for_aces(split_hands[hand_count])
+                            # adjust_for_aces(split_hands[hand_count])
                             if get_true_sum(split_hands[hand_count]) > 21:
                                 print(f"Hand {hand_count + 1} busted")
                                 break
@@ -323,11 +323,11 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                             break
 
             # Dealer's turn
-            while get_true_sum(dealer_hand) < 18:
+            while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
                 card = deck.pop()
                 dealer_hand.append(card)
                 used_cards.append(card)
-                adjust_for_aces(dealer_hand)
+                # adjust_for_aces(dealer_hand)
 
             print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
 
@@ -364,7 +364,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
         player_hand.append(card)
         used_cards.append(card)
         print("Your cards:", ' '.join(map(str, player_hand)))
-        adjust_for_aces(player_hand)
+        # adjust_for_aces(player_hand)
 
         if get_true_sum(player_hand) > 21:
             print("You busted")
@@ -377,7 +377,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                 player_hand.append(card)
                 used_cards.append(card)
                 print("Your cards:", ' '.join(map(str, player_hand)))
-                adjust_for_aces(player_hand)
+                # adjust_for_aces(player_hand)
                 if get_true_sum(player_hand) > 21:
                     print("You busted")
                     return -bet_amount
@@ -385,11 +385,11 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                 break
 
     # Dealer's turn
-    while get_true_sum(dealer_hand) < 18:
+    while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
         card = deck.pop()
         dealer_hand.append(card)
         used_cards.append(card)
-        adjust_for_aces(dealer_hand)
+        # adjust_for_aces(dealer_hand)
 
     print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
 

@@ -101,6 +101,8 @@ def get_true_sum(hand):
 
 # Function to output strategy based on our cards and dealers card
 def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money):
+    dealer_value = get_card_value(dealer_hand[0])
+
     if current_bet + bet_amount > total_money or len(player_hand) > 2:
         double_down_hit = 'hit'
         split_hit = 'hit'
@@ -108,7 +110,7 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
     else:
         double_down_hit = 'double down'
         split_hit = 'split'
-        double_down_stay = 'double_down'
+        double_down_stay = 'double down'
         
     if player_hand[0] == player_hand[1]:
         if 'A' in player_hand:
@@ -116,7 +118,7 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
         if 10 in player_hand:
             return 'stay'
         if 9 in player_hand:
-            if dealer_value == 7 or dealer_value == 10 or dealer_value == A:
+            if dealer_value == 7 or dealer_value == 10 or dealer_value == 'A':
                 return 'stay'
             else:
                 return 'split'
@@ -180,7 +182,6 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
                 return 'hit'
     
     player_value = get_true_sum(player_hand)
-    dealer_value = get_card_value(dealer_hand[0])
     
 
 
@@ -210,17 +211,17 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
     elif player_value == 15:
         if dealer_value <= 6:
             return 'stay'
-        elif dealer_value == 10:
+        elif dealer_value == 10 and len(player_hand) <= 2:
             return 'surrender'
         else:
             return 'hit'
     elif player_value == 16:
         if dealer_value <= 6:
             return 'stay'
-        elif dealer_value <= 8:
-            return 'hit'
-        else:
+        elif dealer_value >= 9 and len(player_hand) <= 2:
             return 'surrender'
+        else:
+            return 'hit'
     else:
         return 'stay'
     
@@ -253,6 +254,8 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
     current_bet = bet_amount
     # Check for pair to enable splitting
     strategy = best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money)
+    if strategy == 'surrender':
+        return -bet_amount//2
     if player_hand[0] == player_hand[1]:
         if strategy == 'split':
             current_bet += bet_amount
@@ -263,40 +266,47 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
             while hand_count < len(split_hands) - 1:
                 hand_count += 1
                 strategy = best_strategy(split_hands[hand_count], dealer_hand, current_bet, bet_amount, total_money)
-                if len(split_hands[hand_count]) == 2 and split_hands[hand_count][0] == split_hands[hand_count][1]:
-                    
-                    if strategy == 'split':
-                        current_bet += bet_amount
-                        split_hands.append([split_hands[hand_count][1]])
-                        split_hands[hand_count] = [split_hands[hand_count][0]]
-                        split_hands[hand_count].append(deck.pop())
-                        split_hands[len(split_hands)-1].append(deck.pop())
-
-                if strategy == 'double_down':
+                # if len(split_hands[hand_count]) == 2 and split_hands[hand_count][0] == split_hands[hand_count][1]:
+                  
+                if strategy == 'split':
+                    current_bet += bet_amount
+                    split_hands.append([split_hands[hand_count][1]])
+                    split_hands[hand_count] = [split_hands[hand_count][0]]
+                    split_hands[hand_count].append(deck.pop())
+                    split_hands[len(split_hands)-1].append(deck.pop())
+                if strategy == 'surrender':
+                    split_hands[hand_count] = [0, 0]
+                elif strategy == 'double down':
                     bet_amount *= 2
                     card = deck.pop()
                     split_hands[hand_count].append(card)
                     used_cards.append(card)
-                    adjust_for_aces(split_hands[hand_count])
+                    # adjust_for_aces(split_hands[hand_count])
 
                 else:
                     while get_true_sum(split_hands[hand_count]) < 21:
+                        strategy = best_strategy(split_hands[hand_count], dealer_hand, current_bet, bet_amount, total_money)
                         if strategy == 'hit':
                             card = deck.pop()
                             split_hands[hand_count].append(card)
                             used_cards.append(card)
-                            adjust_for_aces(split_hands[hand_count])
+                            # adjust_for_aces(split_hands[hand_count])
                             if get_true_sum(split_hands[hand_count]) > 21:
                                 break
                         elif strategy == 'stay':
                             break
+                        else:
+                            print(strategy)
+                            print(split_hands)
+                            print(dealer_hand)
+                            break
 
             # Dealer's turn
-            while get_true_sum(dealer_hand) < 18:
+            while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
                 card = deck.pop()
                 dealer_hand.append(card)
                 used_cards.append(card)
-                adjust_for_aces(dealer_hand)
+                # adjust_for_aces(dealer_hand)
 
             # Determine the winner for each split hand
             total_winnings = 0
@@ -304,7 +314,9 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                 player_value = get_true_sum(split_hands[i])
                 dealer_value = get_true_sum(dealer_hand)
 
-                if player_value > 21:
+                if player_value == 0:
+                    total_winnings -= bet_amount//2
+                elif player_value > 21:
                     total_winnings -= bet_amount
                 elif dealer_value > 21 or player_value > dealer_value:
                     total_winnings += bet_amount
@@ -321,28 +333,34 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
         card = deck.pop()
         player_hand.append(card)
         used_cards.append(card)
-        adjust_for_aces(player_hand)
+        # adjust_for_aces(player_hand)
 
         if get_true_sum(player_hand) > 21:
             return -bet_amount
     else:
         while get_true_sum(player_hand) < 21:
-            if strategy == 'double down':
+            strategy = best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money)
+            if strategy == 'hit':
                 card = deck.pop()
                 player_hand.append(card)
                 used_cards.append(card)
-                adjust_for_aces(player_hand)
+                # adjust_for_aces(player_hand)
                 if get_true_sum(player_hand) > 21:
                     return -bet_amount
             elif strategy == 'stay':
                 break
+            else:
+                print(strategy)
+                print(player_hand)
+                print(dealer_hand)
+                break
 
     # Dealer's turn
-    while get_true_sum(dealer_hand) < 18:
+    while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
         card = deck.pop()
         dealer_hand.append(card)
         used_cards.append(card)
-        adjust_for_aces(dealer_hand)
+        # adjust_for_aces(dealer_hand)
 
     # Determine the winner for the non-split hand
     player_value = get_true_sum(player_hand)
