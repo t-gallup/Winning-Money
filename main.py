@@ -117,7 +117,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
 
             for i in range(2):
                 print(f"\nHand {i + 1}: {' '.join(map(str, split_hands[i]))}")
-
+                adjust_for_aces(split_hands[i])
                 while sum(split_hands[i]) <= 21:
                     action = input("Would you like to hit or stay: ").lower()
                     if action == 'hit':
@@ -133,6 +133,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                         break
 
             # Dealer's turn
+            adjust_for_aces(dealer_hand)
             while sum(dealer_hand) < 18:
                 card = get_card_value(deck.pop())
                 dealer_hand.append(card)
@@ -171,10 +172,12 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
             used_cards.append(card)
             print("Your cards:", ' '.join(map(str, player_hand)))
             adjust_for_aces(player_hand)
+            
             if sum(player_hand) > 21:
                 print("You busted")
                 return -bet_amount
-
+        
+        adjust_for_aces(player_hand)
         while sum(player_hand) <= 21:
             action = input("Would you like to hit or stay: ").lower()
             if action == 'hit':
@@ -190,6 +193,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                 break
 
         # Dealer's turn
+        adjust_for_aces(dealer_hand)
         while sum(dealer_hand) < 18:
             card = get_card_value(deck.pop())
             dealer_hand.append(card)
