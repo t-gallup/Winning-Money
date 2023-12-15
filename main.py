@@ -437,7 +437,7 @@ def main():
             deck = create_deck(num_decks)
 
 
-    print("You're out of money. Game over!")
+    print("Game over! You're a brokie")
 
 if __name__ == "__main__":
     main()
