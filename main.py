@@ -56,7 +56,8 @@ import random
 
 # Function to create a deck with specified number of decks
 def create_deck(num_decks):
-    ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'A', 'J', 'Q', 'K']
+    # ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'A', 'J', 'Q', 'K']
+    ranks = [5]
     deck = ranks * 4 * num_decks
     random.shuffle(deck)
     return deck
@@ -76,13 +77,28 @@ def get_card_value(card):
 
 # Function to adjust the value of the hand based on Aces
 def adjust_for_aces(hand):
-    while sum(hand) > 21 and 11 in hand:
-        index = hand.index(11)
-        hand[index] = 1
+    hand_values = []
+    for card in hand:
+        hand_values.append(get_card_value(card))
+    while sum(hand_values) > 21 and 11 in hand:
+        index = hand_values.index(11)
+        hand_values[index] = 1
 
 # Function to check for blackjack
 def check_blackjack(hand):
-    return len(hand) == 2 and 10 in hand and 'A' in hand
+    return get_true_sum(hand) == 21
+
+# Get the number value of a hand
+def get_true_sum(hand):
+    hand_values = []
+    for card in hand:
+        hand_values.append(get_card_value(card))
+    # Adjust for aces
+    while sum(hand_values) > 21 and 11 in hand_values:
+        index = hand_values.index(11)
+        hand_values[index] = 1
+    return sum(hand_values)
+    
 
 # Function to play a hand of blackjack
 def play_blackjack(deck, used_cards, bet_amount, total_money):
@@ -112,31 +128,50 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
         split = input("Would you like to split? (yes/no): ").lower()
         if split == 'yes':
             split_hands = [[player_hand[0]], [player_hand[1]]]
-            for i in range(2):
+            for i in range(len(split_hands)):
                 split_hands[i].append(get_card_value(deck.pop()))
+            hand_count = -1
+            while hand_count < len(split_hands) - 1:
+                hand_count += 1
+                print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
+                if len(split_hands[hand_count]) == 2 and split_hands[hand_count][0] == split_hands[hand_count][1]:
+                    split = input("Would you like to split? (yes/no): ").lower()
+                    if split == 'yes':
+                        split_hands.append([split_hands[hand_count][1]])
+                        split_hands[hand_count] = [split_hands[hand_count][0]]
+                        split_hands[hand_count].append(get_card_value(deck.pop()))
+                        split_hands[len(split_hands)-1].append(get_card_value(deck.pop()))
+                
+                double_down = input("Would you like to double down? (yes/no): ").lower()
+                if double_down == 'yes':
+                    bet_amount *= 2
+                    card = get_card_value(deck.pop())
+                    split_hands[hand_count].append(card)
+                    used_cards.append(card)
+                    print("Your cards:", ' '.join(map(str, split_hands[hand_count])))
+                    adjust_for_aces(split_hands[hand_count])
 
-            for i in range(2):
-                print(f"\nHand {i + 1}: {' '.join(map(str, split_hands[i]))}")
-                for j in range(len(split_hands[i])):
-                    split_hands[i][j] = get_card_value(split_hands[i][j])
-                while sum(split_hands[i]) <= 21:
-                    action = input("Would you like to hit or stay: ").lower()
-                    if action == 'hit':
-                        card = get_card_value(deck.pop())
-                        split_hands[i].append(card)
-                        print(f"Hand {i + 1}: {' '.join(map(str, split_hands[i]))}")
-                        used_cards.append(card)
-                        adjust_for_aces(split_hands[i])
-                        if sum(split_hands[i]) > 21:
-                            print(f"Hand {i + 1} busted")
+                    # if sum(split_hands[i]) > 21:
+                    #     print("You busted")
+                    #     return -bet_amount
+                else:
+                    while get_true_sum(split_hands[hand_count]) < 21:
+                        action = input("Would you like to hit or stay: ").lower()
+                        if action == 'hit':
+                            card = get_card_value(deck.pop())
+                            split_hands[hand_count].append(card)
+                            print(f"Hand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
+                            used_cards.append(card)
+                            adjust_for_aces(split_hands[hand_count])
+                            if get_true_sum(split_hands[hand_count]) > 21:
+                                print(f"Hand {hand_count + 1} busted")
+                                break
+                        elif action == 'stay':
                             break
-                    elif action == 'stay':
-                        break
 
             # Dealer's turn
-            dealer_hand = get_card_value(dealer_hand)
-            while sum(dealer_hand) < 18:
-                card = get_card_value(deck.pop())
+            while get_true_sum(dealer_hand) < 18:
+                card = deck.pop()
                 dealer_hand.append(card)
                 used_cards.append(card)
                 adjust_for_aces(dealer_hand)
@@ -145,9 +180,9 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
 
             # Determine the winner for each split hand
             total_winnings = 0
-            for i in range(2):
-                player_value = sum(split_hands[i])
-                dealer_value = sum(dealer_hand)
+            for i in range(len(split_hands)):
+                player_value = get_true_sum(split_hands[i])
+                dealer_value = get_true_sum(dealer_hand)
 
                 if player_value > 21:
                     print(f"Hand {i + 1} busts. Dealer wins")
@@ -171,18 +206,14 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
             card = get_card_value(deck.pop())
             player_hand.append(card)
             used_cards.append(card)
-            for i in range(len(player_hand)):
-                player_hand[i] = get_card_value(player_hand[i])
             print("Your cards:", ' '.join(map(str, player_hand)))
             adjust_for_aces(player_hand)
 
-            if sum(player_hand) > 21:
+            if get_true_sum(player_hand) > 21:
                 print("You busted")
                 return -bet_amount
         else:
-            for i in range(len(player_hand)):
-                player_hand[i] = get_card_value(player_hand[i])
-            while sum(player_hand) <= 21:
+            while get_true_sum(player_hand) <= 21:
                 action = input("Would you like to hit or stay: ").lower()
                 if action == 'hit':
                     card = get_card_value(deck.pop())
@@ -190,16 +221,14 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                     used_cards.append(card)
                     print("Your cards:", ' '.join(map(str, player_hand)))
                     adjust_for_aces(player_hand)
-                    if sum(player_hand) > 21:
+                    if get_true_sum(player_hand) > 21:
                         print("You busted")
                         return -bet_amount
                 elif action == 'stay':
                     break
 
         # Dealer's turn
-        for i in range(len(dealer_hand)):
-            dealer_hand[i] = get_card_value(dealer_hand[i])
-        while sum(dealer_hand) < 18:
+        while get_true_sum(dealer_hand) < 18:
             card = get_card_value(deck.pop())
             dealer_hand.append(card)
             used_cards.append(card)
@@ -208,8 +237,8 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
         print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
 
         # Determine the winner for the non-split hand
-        player_value = sum(player_hand)
-        dealer_value = sum(dealer_hand)
+        player_value = get_true_sum(player_hand)
+        dealer_value = get_true_sum(dealer_hand)
 
         if player_value > 21:
             print("Player busts. Dealer wins")
