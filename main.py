@@ -56,8 +56,7 @@ import random
 
 # Function to create a deck with specified number of decks
 def create_deck(num_decks):
-    # ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'A', 'J', 'Q', 'K']
-    ranks = [5]
+    ranks = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'A', 'J', 'Q', 'K']
     deck = ranks * 4 * num_decks
     random.shuffle(deck)
     return deck
