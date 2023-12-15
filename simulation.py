@@ -50,6 +50,7 @@ Reshuffle
 
 #Dealer hits on Soft 17
 #Reshuffle happens halfway through the deck
+#Cannot Double after a split
 
 import random
 
@@ -108,7 +109,7 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
         double_down_hit = 'double down'
         split_hit = 'split'
         double_down_stay = 'double_down'
-    
+        
     if player_hand[0] == player_hand[1]:
         if 'A' in player_hand:
             return 'split'
@@ -177,8 +178,7 @@ def best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money
                 return double_down_hit
             else:
                 return 'hit'
-
-
+    
     player_value = get_true_sum(player_hand)
     dealer_value = get_card_value(dealer_hand[0])
     
@@ -236,38 +236,25 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
     player_hand.append(get_card_rank(deck.pop()))
     dealer_hand.append(get_card_rank(deck.pop()))
 
-    print("\nYour cards:", ' '.join(map(str, player_hand)))
-    print("Dealer's face up card:", dealer_hand[0])
 
     if check_blackjack(player_hand):
         if check_blackjack(dealer_hand):
-            print("Player and dealer both have blackjack. It's a tie.")
             return 0
         else:
-            print("Player has blackjack! You win 3:2")
             return int(bet_amount * 1.5)
 
     # Check for if dealer has blackjack in the initial hand
     if check_blackjack(dealer_hand):
         if check_blackjack(player_hand):
-            print("Player and dealer both have blackjack. It's a tie.")
             return 0
         else:
-            print("Dealer has Blackjack! You lose!")
             return -bet_amount
 
     current_bet = bet_amount
     # Check for pair to enable splitting
-    surrender = input('Would you like to surrender? (yes/no): ')
-    if surrender == 'yes':
-        return -bet_amount//2
+    strategy = best_strategy(player_hand, dealer_hand, current_bet, bet_amount, total_money)
     if player_hand[0] == player_hand[1]:
-        if current_bet + bet_amount > total_money:
-            print("You can't split because you're broke")
-            split = 'no'
-        else:
-            split = input("Would you like to split? (yes/no): ").lower()
-        if split == 'yes':
+        if strategy == 'split':
             current_bet += bet_amount
             split_hands = [[player_hand[0]], [player_hand[1]]]
             for i in range(len(split_hands)):
@@ -275,51 +262,33 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
             hand_count = -1
             while hand_count < len(split_hands) - 1:
                 hand_count += 1
-                print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
+                strategy = best_strategy(split_hands[hand_count], dealer_hand, current_bet, bet_amount, total_money)
                 if len(split_hands[hand_count]) == 2 and split_hands[hand_count][0] == split_hands[hand_count][1]:
-                    if current_bet + bet_amount > total_money:
-                        print("You can't split because you're broke")
-                        split = 'no'
-                    else:
-                        split = input("Would you like to split? (yes/no): ").lower()
-                    if split == 'yes':
+                    
+                    if strategy == 'split':
                         current_bet += bet_amount
                         split_hands.append([split_hands[hand_count][1]])
                         split_hands[hand_count] = [split_hands[hand_count][0]]
                         split_hands[hand_count].append(deck.pop())
                         split_hands[len(split_hands)-1].append(deck.pop())
-                
-                # print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
-                if current_bet + bet_amount > total_money:
-                    print("You can't double down because you're broke")
-                    double_down = 'no'
-                else:
-                    double_down = input("Would you like to double down? (yes/no): ").lower()
-                if double_down == 'yes':
+
+                if strategy == 'double_down':
                     bet_amount *= 2
                     card = deck.pop()
                     split_hands[hand_count].append(card)
                     used_cards.append(card)
-                    print("Your cards:", ' '.join(map(str, split_hands[hand_count])))
                     adjust_for_aces(split_hands[hand_count])
 
-                    # if sum(split_hands[i]) > 21:
-                    #     print("You busted")
-                    #     return -bet_amount
                 else:
                     while get_true_sum(split_hands[hand_count]) < 21:
-                    #     print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
-                        action = input("Would you like to hit or stay: ").lower()
-                        if action == 'hit':
+                        if strategy == 'hit':
                             card = deck.pop()
                             split_hands[hand_count].append(card)
-                            print(f"Hand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
                             used_cards.append(card)
                             adjust_for_aces(split_hands[hand_count])
                             if get_true_sum(split_hands[hand_count]) > 21:
-                                print(f"Hand {hand_count + 1} busted")
                                 break
-                        elif action == 'stay':
+                        elif strategy == 'stay':
                             break
 
             # Dealer's turn
@@ -329,8 +298,6 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                 used_cards.append(card)
                 adjust_for_aces(dealer_hand)
 
-            print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
-
             # Determine the winner for each split hand
             total_winnings = 0
             for i in range(len(split_hands)):
@@ -338,50 +305,36 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
                 dealer_value = get_true_sum(dealer_hand)
 
                 if player_value > 21:
-                    print(f"Hand {i + 1} busts. Dealer wins")
                     total_winnings -= bet_amount
                 elif dealer_value > 21 or player_value > dealer_value:
-                    print(f"Hand {i + 1} wins")
                     total_winnings += bet_amount
                 elif player_value < dealer_value:
-                    print(f"Hand {i + 1} loses")
                     total_winnings -= bet_amount
-                else:
-                    print(f"Hand {i + 1} ties with the dealer")
+                
 
             return total_winnings
 
     # Player's turn for non-split hand
-    if current_bet + bet_amount > total_money:
-        print("You can't double down because you're broke")
-        double_down = 'no'
-    else:
-        double_down = input("Would you like to double down? (yes/no): ").lower()
-    if double_down == 'yes':
+    if strategy == 'double down':
         current_bet += bet_amount
         bet_amount *= 2
         card = deck.pop()
         player_hand.append(card)
         used_cards.append(card)
-        print("Your cards:", ' '.join(map(str, player_hand)))
         adjust_for_aces(player_hand)
 
         if get_true_sum(player_hand) > 21:
-            print("You busted")
             return -bet_amount
     else:
         while get_true_sum(player_hand) < 21:
-            action = input("Would you like to hit or stay: ").lower()
-            if action == 'hit':
+            if strategy == 'double down':
                 card = deck.pop()
                 player_hand.append(card)
                 used_cards.append(card)
-                print("Your cards:", ' '.join(map(str, player_hand)))
                 adjust_for_aces(player_hand)
                 if get_true_sum(player_hand) > 21:
-                    print("You busted")
                     return -bet_amount
-            elif action == 'stay':
+            elif strategy == 'stay':
                 break
 
     # Dealer's turn
@@ -391,30 +344,25 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
         used_cards.append(card)
         adjust_for_aces(dealer_hand)
 
-    print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
-
     # Determine the winner for the non-split hand
     player_value = get_true_sum(player_hand)
     dealer_value = get_true_sum(dealer_hand)
 
     if player_value > 21:
-        print("Player busts. Dealer wins")
         return -bet_amount
     elif dealer_value > 21 or player_value > dealer_value:
-        print("Player wins")
         return bet_amount
     elif player_value < dealer_value:
-        print("Dealer wins")
         return -bet_amount
     else:
-        print("It's a tie")
         return 0
 
 # Main game loop
 def main():
-    num_decks = int(input("Please enter the number of decks: "))
-    total_money = int(input("Please enter the amount of money you would like to start with: "))
+    num_decks = 6
+    total_money = 100
     min_bet = 10
+    overall_winnings = 0
 
     deck = create_deck(num_decks)
     used_cards = []
@@ -422,22 +370,35 @@ def main():
     round_number = 1
     penetration = .5
     reshuffle_amount = penetration * len(deck)
+    wins = 0
+    losses = 0
 
-    while total_money >= min_bet:
-        bet_amount = int(input("Please enter the amount of money to bet on this hand (>=" + str(min_bet) + "): "))
-        if bet_amount < min_bet or bet_amount > total_money:
-            continue
-        print(f"\nHand: {round_number}")
-        result = play_blackjack(deck, used_cards, bet_amount, total_money)
-        total_money += result
-        print(f"\nYour total money: {total_money}")
-        round_number += 1
-        if len(deck) < reshuffle_amount:
-            print("Reshuffling deck")
-            deck = create_deck(num_decks)
+    num_games = int(input("Enter number of simulations: "))
+    curr_game = 0
+    while curr_game < num_games:
 
+        while total_money >= min_bet:
+            # TODO: Change bet amount for different counts
+            if curr_game >= num_games:
+                break
+            bet_amount = 10
+            if bet_amount < min_bet or bet_amount > total_money:
+                continue
+            result = play_blackjack(deck, used_cards, bet_amount, total_money)
+            curr_game += 1
+            if result > 0:
+                wins += 1
+            if result < 0: 
+                losses += 1
+            overall_winnings += result
+            total_money += result
+            round_number += 1
+            if len(deck) < reshuffle_amount:
+                deck = create_deck(num_decks)
+        total_money = 100
+    print("Win %: ", wins/(wins + losses))
+    print("Total winnings: ", overall_winnings)
 
-    print("Game over! You're a brokie")
 
 if __name__ == "__main__":
     main()
