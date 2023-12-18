@@ -476,7 +476,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
     #Add dealers second card to running count, done here because it isn't shown until now
     # running_count = change_running_count(dealer_hand[1], running_count)
     update_used_cards([dealer_hand[1]], used_cards)
-    while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
+    while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 17:
         card = deck.pop()
         # running_count = change_running_count(card, running_count)
         dealer_hand.append(card)
