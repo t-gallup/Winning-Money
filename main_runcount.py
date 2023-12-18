@@ -243,31 +243,40 @@ def update_used_cards(new_cards, used_cards):
         else:
             used_cards[card] = 1
 
+def get_running_count(used_cards):
+    running_count = 0
+    for card in used_cards:
+        value = get_card_value(card)
+        if value >= 2 and value <= 6:
+            running_count += used_cards[card]
+        if value == 10 or value == 11:
+            running_count -= used_cards[card]
+    return running_count
+
 # Function to play a hand of blackjack
-def play_blackjack(deck, used_cards, bet_amount, total_money, running_count):
-    print("Current Count: ", running_count)
+def play_blackjack(deck, used_cards, bet_amount, total_money):
+    print("Current Count: ", get_running_count(used_cards))
     # print(running_count)
     player_hand = []
     dealer_hand = []
 
     # Deal initial cards
     card = deck.pop()
-    running_count = change_running_count(card, running_count)
+    # running_count = change_running_count(card, running_count)
     player_hand.append(get_card_rank(card))
     update_used_cards([card], used_cards)
 
     card = deck.pop()
-    running_count = change_running_count(card, running_count)
+    # running_count = change_running_count(card, running_count)
     dealer_hand.append(get_card_rank(card))
     update_used_cards([card], used_cards)
 
     card = deck.pop()
-    running_count = change_running_count(card, running_count)
+    # running_count = change_running_count(card, running_count)
     player_hand.append(get_card_rank(card))
     update_used_cards([card], used_cards)
 
     dealer_hand.append(get_card_rank(deck.pop()))
-    update_used_cards([card], used_cards)
 
     print("\nYour cards:", ' '.join(map(str, player_hand)))
     print("Dealer's face up card:", dealer_hand[0])
@@ -275,39 +284,47 @@ def play_blackjack(deck, used_cards, bet_amount, total_money, running_count):
     if check_blackjack(player_hand):
         if check_blackjack(dealer_hand):
             print("Player and dealer both have blackjack. It's a tie.")
-            running_count = change_running_count(dealer_hand[1], running_count)
+            # running_count = change_running_count(dealer_hand[1], running_count)
+            update_used_cards([dealer_hand[1]], used_cards)
             print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
-            print(f"\nRunning Count: {running_count}")
+            print(f"\nRunning Count: {get_running_count(used_cards)}")
+            
             return 0
         else:
             print("Player has blackjack! You win 3:2")
-            running_count = change_running_count(dealer_hand[1], running_count)
-            print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
-            print(f"\nRunning Count: {running_count}")
+            # Dealer card is only shown if they have a 10, face card, or ace
+            if get_card_value(dealer_hand[0]) >= 10:
+                # running_count = change_running_count(dealer_hand[1], running_count)
+                print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
+                update_used_cards([dealer_hand[1]], used_cards)
+            print(f"\nRunning Count: {get_running_count(used_cards)}")
             return int(bet_amount * 1.5)
 
     # Check for if dealer has blackjack in the initial hand
     if check_blackjack(dealer_hand):
         if check_blackjack(player_hand):
             print("Player and dealer both have blackjack. It's a tie.")
-            running_count = change_running_count(dealer_hand[1], running_count)
+            # running_count = change_running_count(dealer_hand[1], running_count)
+            update_used_cards([dealer_hand[1]], used_cards)
             print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
-            print(f"\nRunning Count: {running_count}")
+            print(f"\nRunning Count: {get_running_count(used_cards)}")
             return 0
         else:
             print("Dealer has Blackjack! You lose!")
-            running_count = change_running_count(dealer_hand[1], running_count)
+            # running_count = change_running_count(dealer_hand[1], running_count)
+            update_used_cards([dealer_hand[1]], used_cards)
             print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
-            print(f"\nRunning Count: {running_count}")
+            print(f"\nRunning Count: {get_running_count(used_cards)}")
             return -bet_amount
 
     current_bet = bet_amount
     
     surrender = input('Would you like to surrender? (yes/no): ')
     if surrender == 'yes':
-        print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
-        running_count = change_running_count(dealer_hand[1], running_count)
-        print(f"\nRunning Count: {running_count}")
+        # Dealer's cards don't get shown if you surrender
+        # print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
+        # running_count = change_running_count(dealer_hand[1], running_count)
+        # print(f"\nRunning Count: {running_count}")
         return -bet_amount//2
     # Check for pair to enable splitting
     if get_card_value(player_hand[0]) == get_card_value(player_hand[1]):
@@ -321,8 +338,9 @@ def play_blackjack(deck, used_cards, bet_amount, total_money, running_count):
             split_hands = [[player_hand[0]], [player_hand[1]]]
             for i in range(len(split_hands)):
                 card = deck.pop()
-                running_count = change_running_count(card, running_count)
+                # running_count = change_running_count(card, running_count)
                 split_hands[i].append(card)
+                update_used_cards([split_hands[i]], used_cards)
             hand_count = -1
             split_count = 1
             while hand_count < len(split_hands) - 1:
@@ -354,7 +372,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money, running_count):
                 if double_down == 'yes':
                     bet_amount *= 2
                     card = deck.pop()
-                    running_count = change_running_count(card, running_count)
+                    # running_count = change_running_count(card, running_count)
                     split_hands[hand_count].append(card)
                     update_used_cards([card], used_cards)
                     print("Your cards:", ' '.join(map(str, split_hands[hand_count])))
@@ -369,7 +387,7 @@ def play_blackjack(deck, used_cards, bet_amount, total_money, running_count):
                         action = input("Would you like to hit or stay: ").lower()
                         if action == 'hit':
                             card = deck.pop()
-                            running_count = change_running_count(card, running_count)
+                            # running_count = change_running_count(card, running_count)
                             split_hands[hand_count].append(card)
                             print(f"Hand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
                             update_used_cards([card], used_cards)
@@ -382,10 +400,11 @@ def play_blackjack(deck, used_cards, bet_amount, total_money, running_count):
 
             # Dealer's turn
             #Add dealers second card to running count, done here because it isn't shown until now
-            running_count = change_running_count(dealer_hand[1], running_count)
+            # running_count = change_running_count(dealer_hand[1], running_count)
+            update_used_cards([dealer_hand[1]], used_cards)
             while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
                 card = deck.pop()
-                running_count = change_running_count(card, running_count)
+                # running_count = change_running_count(card, running_count)
                 dealer_hand.append(card)
                 update_used_cards([card], used_cards)
                 # adjust_for_aces(dealer_hand)
@@ -422,42 +441,44 @@ def play_blackjack(deck, used_cards, bet_amount, total_money, running_count):
         current_bet += bet_amount
         bet_amount *= 2
         card = deck.pop()
-        running_count = change_running_count(card, running_count)
+        # running_count = change_running_count(card, running_count)
         player_hand.append(card)
         update_used_cards([card], used_cards)
         print("Your cards:", ' '.join(map(str, player_hand)))
         # adjust_for_aces(player_hand)
 
         if get_true_sum(player_hand) > 21:
+            # You don't see dealers hand if you bust
             print("You busted")
-            running_count = change_running_count(dealer_hand[1], running_count)
-            print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
-            print(f"\nRunning Count: {running_count}")
+            # running_count = change_running_count(dealer_hand[1], running_count)
+            print(f"\nRunning Count: {get_running_count(used_cards)}")
             return -bet_amount
     else:
         while get_true_sum(player_hand) < 21:
             action = input("Would you like to hit or stay: ").lower()
             if action == 'hit':
                 card = deck.pop()
-                running_count = change_running_count(card, running_count)
+                # running_count = change_running_count(card, running_count)
                 player_hand.append(card)
                 update_used_cards([card], used_cards)
                 print("Your cards:", ' '.join(map(str, player_hand)))
                 # adjust_for_aces(player_hand)
                 if get_true_sum(player_hand) > 21:
+                    # You don't see dealers hand if you bust
                     print("You busted")
-                    running_count = change_running_count(dealer_hand[1], running_count)
-                    print(f"\nRunning Count: {running_count}")
+                    # running_count = change_running_count(dealer_hand[1], running_count)
+                    print(f"\nRunning Count: {get_running_count(used_cards)}")
                     return -bet_amount
             elif action == 'stay':
                 break
 
     # Dealer's turn
     #Add dealers second card to running count, done here because it isn't shown until now
-    running_count = change_running_count(dealer_hand[1], running_count)
+    # running_count = change_running_count(dealer_hand[1], running_count)
+    update_used_cards([dealer_hand[1]], used_cards)
     while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
         card = deck.pop()
-        running_count = change_running_count(card, running_count)
+        # running_count = change_running_count(card, running_count)
         dealer_hand.append(card)
         update_used_cards([card], used_cards)
         # adjust_for_aces(dealer_hand)
@@ -470,19 +491,19 @@ def play_blackjack(deck, used_cards, bet_amount, total_money, running_count):
 
     if player_value > 21:
         print("Player busts. Dealer wins")
-        print(f"\nRunning Count: {running_count}")
+        print(f"\nRunning Count: {get_running_count(used_cards)}")
         return -bet_amount
     elif dealer_value > 21 or player_value > dealer_value:
         print("Player wins")
-        print(f"\nRunning Count: {running_count}")
+        print(f"\nRunning Count: {get_running_count(used_cards)}")
         return bet_amount
     elif player_value < dealer_value:
         print("Dealer wins")
-        print(f"\nRunning Count: {running_count}")
+        print(f"\nRunning Count: {get_running_count(used_cards)}")
         return -bet_amount
     else:
         print("It's a tie")
-        print(f"\nRunning Count: {running_count}")
+        print(f"\nRunning Count: {get_running_count(used_cards)}")
         return 0
 
 
@@ -499,14 +520,14 @@ def main():
     penetration = .5
     reshuffle_amount = penetration * len(deck)
 
-    running_count = 0
+    # running_count = 0
 
     while total_money >= min_bet:
         bet_amount = int(input("Please enter the amount of money to bet on this hand (>=" + str(min_bet) + "): "))
         if bet_amount < min_bet or bet_amount > total_money:
             continue
         print(f"\nHand: {round_number}")
-        result = play_blackjack(deck, used_cards, bet_amount, total_money, running_count)
+        result = play_blackjack(deck, used_cards, bet_amount, total_money)
         total_money += result
         print(f"\nYour total money: {total_money}")
         print(f"\nUsed cards: {used_cards}")
@@ -514,7 +535,7 @@ def main():
         if len(deck) < reshuffle_amount:
             print("Reshuffling deck")
             deck = create_deck(num_decks)
-            running_count = 0
+            # running_count = 0
             used_cards = {}
 
 
