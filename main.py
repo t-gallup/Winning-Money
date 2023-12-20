@@ -258,132 +258,161 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
 
     current_bet = bet_amount
     # Check for pair to enable splitting
-    surrender = input('Would you like to surrender? (yes/no): ')
-    if surrender == 'yes':
-        return -bet_amount//2
-    if player_hand[0] == player_hand[1]:
-        if current_bet + bet_amount > total_money:
-            print("You can't split because you're broke")
-            split = 'no'
+    while True:
+        surrender = input('Would you like to surrender? (yes/no): ')
+        if surrender == 'yes':
+            return -bet_amount//2
+        elif surrender == 'no':
+            break
         else:
-            split = input("Would you like to split? (yes/no): ").lower()
-        if split == 'yes':
-            current_bet += bet_amount
-            split_hands = [[player_hand[0]], [player_hand[1]]]
-            for i in range(len(split_hands)):
-                split_hands[i].append(deck.pop())
-            hand_count = -1
-            while hand_count < len(split_hands) - 1:
-                hand_count += 1
-                print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
-                if len(split_hands[hand_count]) == 2 and split_hands[hand_count][0] == split_hands[hand_count][1]:
-                    if current_bet + bet_amount > total_money:
-                        print("You can't split because you're broke")
-                        split = 'no'
-                    else:
-                        split = input("Would you like to split? (yes/no): ").lower()
-                    if split == 'yes':
-                        current_bet += bet_amount
-                        split_hands.append([split_hands[hand_count][1]])
-                        split_hands[hand_count] = [split_hands[hand_count][0]]
-                        split_hands[hand_count].append(deck.pop())
-                        split_hands[len(split_hands)-1].append(deck.pop())
-                
-                # print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
-                if current_bet + bet_amount > total_money:
-                    print("You can't double down because you're broke")
-                    double_down = 'no'
-                else:
-                    double_down = input("Would you like to double down? (yes/no): ").lower()
-                if double_down == 'yes':
-                    bet_amount *= 2
-                    card = deck.pop()
-                    split_hands[hand_count].append(card)
-                    used_cards.append(card)
-                    print("Your cards:", ' '.join(map(str, split_hands[hand_count])))
-                    # adjust_for_aces(split_hands[hand_count])
-
-                    # if sum(split_hands[i]) > 21:
-                    #     print("You busted")
-                    #     return -bet_amount
-                else:
-                    while get_true_sum(split_hands[hand_count]) < 21:
-                    #     print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
-                        action = input("Would you like to hit or stay: ").lower()
-                        if action == 'hit':
+            print('Invalid input, please enter yes or no.')
+    if player_hand[0] == player_hand[1]:
+        while True:
+            if current_bet + bet_amount > total_money:
+                print("You can't split because you're broke")
+                split = 'no'
+            else:
+                split = input("Would you like to split? (yes/no): ").lower()
+            if split == 'yes':
+                current_bet += bet_amount
+                split_hands = [[player_hand[0]], [player_hand[1]]]
+                for i in range(len(split_hands)):
+                    split_hands[i].append(deck.pop())
+                hand_count = -1
+                while hand_count < len(split_hands) - 1:
+                    hand_count += 1
+                    print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
+                    if len(split_hands[hand_count]) == 2 and split_hands[hand_count][0] == split_hands[hand_count][1]:
+                        while True:
+                            if current_bet + bet_amount > total_money:
+                                print("You can't split because you're broke")
+                                split = 'no'
+                            else:
+                                split = input("Would you like to split? (yes/no): ").lower()
+                            if split == 'yes':
+                                current_bet += bet_amount
+                                split_hands.append([split_hands[hand_count][1]])
+                                split_hands[hand_count] = [split_hands[hand_count][0]]
+                                split_hands[hand_count].append(deck.pop())
+                                split_hands[len(split_hands)-1].append(deck.pop())
+                                break
+                            elif split == 'no':
+                                break
+                            else:
+                                print('Invalid input. Please enter yes or no.')
+                            
+                        
+                    
+                    # print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
+                    while True:
+                        if current_bet + bet_amount > total_money:
+                            print("You can't double down because you're broke")
+                            double_down = 'no'
+                        else:
+                            double_down = input("Would you like to double down? (yes/no): ").lower()
+                        if double_down == 'yes':
+                            bet_amount *= 2
                             card = deck.pop()
                             split_hands[hand_count].append(card)
-                            print(f"Hand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
                             used_cards.append(card)
-                            # adjust_for_aces(split_hands[hand_count])
-                            if get_true_sum(split_hands[hand_count]) > 21:
-                                print(f"Hand {hand_count + 1} busted")
-                                break
-                        elif action == 'stay':
+                            print("Your cards:", ' '.join(map(str, split_hands[hand_count])))
                             break
+                        # adjust_for_aces(split_hands[hand_count])
+                        # if sum(split_hands[i]) > 21:
+                        #     print("You busted")
+                        #     return -bet_amount
+                        elif double_down == 'no':
+                            while get_true_sum(split_hands[hand_count]) < 21:
+                            #     print(f"\nHand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
+                                action = input("Would you like to hit or stay: ").lower()
+                                if action == 'hit':
+                                    card = deck.pop()
+                                    split_hands[hand_count].append(card)
+                                    print(f"Hand {hand_count + 1}: {' '.join(map(str, split_hands[hand_count]))}")
+                                    used_cards.append(card)
+                                    # adjust_for_aces(split_hands[hand_count])
+                                    if get_true_sum(split_hands[hand_count]) > 21:
+                                        print(f"Hand {hand_count + 1} busted")
+                                        break
+                                elif action == 'stay':
+                                    break
+                                else:
+                                    print('Invalid input. Please enter hit or stay.')
+                            break
+                        else:
+                            print("Invalid input. Please enter yes or no.")
+                # Dealer's turn
+                while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 17:
+                    card = deck.pop()
+                    dealer_hand.append(card)
+                    used_cards.append(card)
+                    # adjust_for_aces(dealer_hand)
 
-            # Dealer's turn
-            while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
-                card = deck.pop()
-                dealer_hand.append(card)
-                used_cards.append(card)
-                # adjust_for_aces(dealer_hand)
+                print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
 
-            print("\nDealer's cards:", ' '.join(map(str, dealer_hand)))
+                # Determine the winner for each split hand
+                total_winnings = 0
+                for i in range(len(split_hands)):
+                    player_value = get_true_sum(split_hands[i])
+                    dealer_value = get_true_sum(dealer_hand)
 
-            # Determine the winner for each split hand
-            total_winnings = 0
-            for i in range(len(split_hands)):
-                player_value = get_true_sum(split_hands[i])
-                dealer_value = get_true_sum(dealer_hand)
+                    if player_value > 21:
+                        print(f"Hand {i + 1} busts. Dealer wins")
+                        total_winnings -= bet_amount
+                    elif dealer_value > 21 or player_value > dealer_value:
+                        print(f"Hand {i + 1} wins")
+                        total_winnings += bet_amount
+                    elif player_value < dealer_value:
+                        print(f"Hand {i + 1} loses")
+                        total_winnings -= bet_amount
+                    else:
+                        print(f"Hand {i + 1} ties with the dealer")
 
-                if player_value > 21:
-                    print(f"Hand {i + 1} busts. Dealer wins")
-                    total_winnings -= bet_amount
-                elif dealer_value > 21 or player_value > dealer_value:
-                    print(f"Hand {i + 1} wins")
-                    total_winnings += bet_amount
-                elif player_value < dealer_value:
-                    print(f"Hand {i + 1} loses")
-                    total_winnings -= bet_amount
-                else:
-                    print(f"Hand {i + 1} ties with the dealer")
-
-            return total_winnings
-
-    # Player's turn for non-split hand
-    if current_bet + bet_amount > total_money:
-        print("You can't double down because you're broke")
-        double_down = 'no'
-    else:
-        double_down = input("Would you like to double down? (yes/no): ").lower()
-    if double_down == 'yes':
-        current_bet += bet_amount
-        bet_amount *= 2
-        card = deck.pop()
-        player_hand.append(card)
-        used_cards.append(card)
-        print("Your cards:", ' '.join(map(str, player_hand)))
-        # adjust_for_aces(player_hand)
-
-        if get_true_sum(player_hand) > 21:
-            print("You busted")
-            return -bet_amount
-    else:
-        while get_true_sum(player_hand) < 21:
-            action = input("Would you like to hit or stay: ").lower()
-            if action == 'hit':
-                card = deck.pop()
-                player_hand.append(card)
-                used_cards.append(card)
-                print("Your cards:", ' '.join(map(str, player_hand)))
-                # adjust_for_aces(player_hand)
-                if get_true_sum(player_hand) > 21:
-                    print("You busted")
-                    return -bet_amount
-            elif action == 'stay':
+                return total_winnings
+            elif split != 'no':
+                print('Invalid input. Please enter yes or no.')
+            else:
                 break
 
+    # Player's turn for non-split hand
+    while True:
+        if current_bet + bet_amount > total_money:
+            print("You can't double down because you're broke")
+            double_down = 'no'
+        else:
+            double_down = input("Would you like to double down? (yes/no): ").lower()
+        if double_down == 'yes':
+            current_bet += bet_amount
+            bet_amount *= 2
+            card = deck.pop()
+            player_hand.append(card)
+            used_cards.append(card)
+            print("Your cards:", ' '.join(map(str, player_hand)))
+            # adjust_for_aces(player_hand)
+
+            if get_true_sum(player_hand) > 21:
+                print("You busted")
+                return -bet_amount
+            break
+        elif double_down == 'no':
+            while get_true_sum(player_hand) < 21:
+                action = input("Would you like to hit or stay: ").lower()
+                if action == 'hit':
+                    card = deck.pop()
+                    player_hand.append(card)
+                    used_cards.append(card)
+                    print("Your cards:", ' '.join(map(str, player_hand)))
+                    # adjust_for_aces(player_hand)
+                    if get_true_sum(player_hand) > 21:
+                        print("You busted")
+                        return -bet_amount
+                elif action == 'stay':
+                    break
+                else:
+                    print("Invalid input. Please enter hit or stay.")
+            break
+        else:
+            print("Invalid input. Please enter yes or no.")
     # Dealer's turn
     while ('A' in dealer_hand and get_true_sum == 17) or get_true_sum(dealer_hand) < 18:
         card = deck.pop()
@@ -412,8 +441,26 @@ def play_blackjack(deck, used_cards, bet_amount, total_money):
 
 # Main game loop
 def main():
-    num_decks = int(input("Please enter the number of decks: "))
-    total_money = int(input("Please enter the amount of money you would like to start with: "))
+    while True:
+        try:
+            num_decks = int(input("Please enter the number of decks: "))
+        except:
+            print("Invalid input. Please enter a number greater than 0.")
+            continue
+        if num_decks < 1:
+            print("Invalid input. Please enter an whole number greater than 0.")
+        else:
+            break
+    while True:
+        try:
+            total_money = int(input("Please enter the amount of money you would like to start with (>=10): "))
+        except:
+            print("Invalid input. Please enter a number greater than 9.")
+            continue
+        if total_money < 10:
+            print("Invalid input. Please enter an whole number greater than 9.")
+        else:
+            break
     min_bet = 10
 
     deck = create_deck(num_decks)
@@ -424,9 +471,16 @@ def main():
     reshuffle_amount = penetration * len(deck)
 
     while total_money >= min_bet:
-        bet_amount = int(input("Please enter the amount of money to bet on this hand (>=" + str(min_bet) + "): "))
-        if bet_amount < min_bet or bet_amount > total_money:
-            continue
+        while True:
+            try:
+                bet_amount = int(input("Please enter the amount of money to bet on this hand (>=" + str(min_bet) + "): "))
+            except:
+                print(f"Invalid input. Please enter a number greater than 9 and less than or equal to {total_money}.")
+                continue
+            if bet_amount < 10 or bet_amount > total_money:
+                print(f"Invalid input. Please enter a number greater than 9 and less than or equal to {total_money}.")
+            else:
+                break
         print(f"\nHand: {round_number}")
         result = play_blackjack(deck, used_cards, bet_amount, total_money)
         total_money += result
